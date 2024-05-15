@@ -1,4 +1,4 @@
-Project (SDL_shooter)
+Project (KOShooter)
 CMake_Minimum_Required (VERSION 3.1)
 
 include(FindPkgConfig)

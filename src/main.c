@@ -4,23 +4,30 @@
 #include "init.h"
 #include "input.h"
 #include "main.h"
+#include "stage.h"
 
-// single instance of App and player
 App app;
-Entity player;
+Stage stage;
+
+static void capFrameRate(long *then, float *remainder);
 
 int main(int argc, char *argv[]) {
-    // zeruje bloki pamięci zarezerwowany na aplikację i tekstury
+    long then;
+    float remainder;
+
+    // zeruje bloki pamięci zarezerwowany na aplikację
     memset(&app, 0, sizeof(App));
-    memset(&player, 0, sizeof(Entity));
 
     initSDL();
 
+    // from init.c
     atexit(cleanup);
 
-    player.x = 500;
-    player.y = 500;
-    player.texture = loadTexture("gfx/player.png");
+    initStage();
+
+    then = SDL_GetTicks();
+
+    remainder = 0;
 
     while (1) {
         // setup rendering
@@ -29,31 +36,38 @@ int main(int argc, char *argv[]) {
         // collect and process user input
         doInput();
 
-        if (app.up) {
-            player.y -= 4;
-        }
+        app.delegate.logic();
 
-        if (app.down) {
-            player.y += 4;
-        }
-
-        if (app.left) {
-            player.x -= 4;
-        }
-
-        if (app.right) {
-            player.x += 4;
-        }
-
-        // draw player texture
-        blit(player.texture, player.x, player.y);
+        app.delegate.draw();
 
         // display a scene
         presentScene();
 
-        // limit loop to 62 frames/s
-        SDL_Delay(16);
+        // limit loop to 60 frames/s
+        capFrameRate(&then, &remainder);
     }
 
     return 0;
+}
+
+static void capFrameRate(long *then, float *remainder) {
+    long wait, frameTime;
+
+    wait = 16 + *remainder;
+
+    *remainder -= (int) *remainder;
+
+    frameTime = SDL_GetTicks() - *then;
+
+    wait -= frameTime;
+
+    if (wait < 1) {
+        wait = 1;
+    }
+
+    SDL_Delay(wait);
+
+    *remainder += 0.667;
+
+    *then = SDL_GetTicks();
 }

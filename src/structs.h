@@ -1,29 +1,46 @@
+typedef struct Entity Entity;
+
 /*
- * App will hold reference to window and renderer
- *
- * @param *renderer
- * @param *window
- *
- * @return App reference
+ * Delegate for handling the logic and draw functions in the game's main loop
+ */
+typedef struct {
+    void (*logic)(void);
+
+    void (*draw)(void);
+} Delegate;
+
+/*
+ * App will hold reference to all related logic, window, keyboard events, etc.
  */
 typedef struct {
     SDL_Renderer *renderer;
     SDL_Window *window;
-    int up;
-    int down;
-    int left;
-    int right;
+    Delegate delegate;
+    int keyboard[MAX_KEYBOARD_KEYS];
 } App;
 
 /*
- * Represents the player
+ * Represents the entity (player, bullets, enemies, etc.)
+ * Entities could structure linked list, using next pointer
+ */
+struct Entity {
+    float x;
+    float y;
+    int w;
+    int h;
+    float dx;
+    float dy;
+    int health;
+    int reload;
+    SDL_Texture *texture;
+    Entity *next;   ///< Pointer to next Entity (for linked list)
+};
+
+/*
+ * To hold information about all fighters and bullets
  *
- * @param x coordinate
- * @param y coordinate
- * @param *texture player texture
  */
 typedef struct {
-    int x;
-    int y;
-    SDL_Texture *texture;
-} Entity;
+    Entity fighterHead, *fighterTail;
+    Entity bulletHead, *bulletTail;
+} Stage;
