@@ -32,13 +32,13 @@ struct Entity {
     float dy;
     int health;
     int reload;
+    int side;       ///< side defined in defs (player or alien)
     SDL_Texture *texture;
     Entity *next;   ///< Pointer to next Entity (for linked list)
 };
 
 /*
  * To hold information about all fighters and bullets
- *
  */
 typedef struct {
     Entity fighterHead, *fighterTail;
