@@ -15,9 +15,10 @@ int main(int argc, char *argv[]) {
     long then;
     float remainder;
 
-    // zeruje bloki pamięci zarezerwowany na aplikację
+    // clear memory blocks allocated for application
     memset(&app, 0, sizeof(App));
 
+    // from init.c
     initSDL();
 
     // from init.c
