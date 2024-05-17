@@ -50,7 +50,10 @@ void blit(SDL_Texture *texture, int x, int y) {
 }
 
 /*
- * It takes rect of texture and copy it. Used for "destroying" ships
+ * It takes rect of texture and copy it. Used for "destroying" ships and rendering text on screen
+ * @param *texture source texture that contains the image
+ * @param *src pointer that defines the portion of a texture to copy
+ * @param x, y position of *src rect
  */
 void blitRect(SDL_Texture *texture, SDL_Rect *src, int x, int y) {
     SDL_Rect dest;

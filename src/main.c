@@ -4,7 +4,9 @@
 #include "init.h"
 #include "input.h"
 #include "main.h"
+#include "sound.h"
 #include "stage.h"
+#include "text.h"
 
 App app;
 Stage stage;
@@ -23,6 +25,10 @@ int main(int argc, char *argv[]) {
 
     // from init.c
     atexit(cleanup);
+
+    initSounds();
+
+    initFonts();
 
     initStage();
 

@@ -1,6 +1,8 @@
 #include "common.h"
 #include "draw.h"
+#include "sound.h"
 #include "stage.h"
+#include "text.h"
 #include "util.h"
 
 extern App app;
@@ -58,6 +60,12 @@ static void doDebris(void);
 
 static void drawDebris(void);
 
+static void drawHud(void);
+
+static void doPointsPods(void);
+
+static void addPointsPod(int x, int y);
+
 
 static Entity *player;
 static SDL_Texture *bulletTexture;
@@ -66,10 +74,12 @@ static SDL_Texture *alienBulletTexture;
 static SDL_Texture *playerTexture;
 static SDL_Texture *background;
 static SDL_Texture *explosionTexture;
+static SDL_Texture *pointsTexture;
 static int enemySpawnTimer;
 static int stageResetTimer;
 static int backgroundX;
 static Star stars[MAX_STARS];
+static int highscore;
 
 void initStage(void) {
     app.delegate.logic = logic;
@@ -88,6 +98,10 @@ void initStage(void) {
     playerTexture = loadTexture("gfx/player.png");
     background = loadTexture("gfx/background.png");
     explosionTexture = loadTexture("gfx/explosion.png");
+    pointsTexture = loadTexture("gfx/points.png");
+
+    loadMusic("music/Mercury.ogg");
+    playMusic(1);
 
     resetStage();
 }
@@ -127,11 +141,19 @@ static void resetStage(void) {
         free(d);
     }
 
-    memset(&stage, 0, sizeof(Stage));
+    while (stage.pointsHead.next) {
+        e = stage.pointsHead.next;
+        stage.pointsHead.next = e->next;
+        free(e);
+    }
+
+    // reseting linked lists: tail point to head, where head.next == NULL
     stage.fighterTail = &stage.fighterHead;
     stage.bulletTail = &stage.bulletHead;
     stage.explosionTail = &stage.explosionHead;
     stage.debrisTail = &stage.debrisHead;
+    stage.pointsTail = &stage.pointsHead;
+    stage.score = 0;
 
     initPlayer();
 
@@ -142,7 +164,7 @@ static void resetStage(void) {
     stageResetTimer = FPS * 3;
 }
 
-static void initPlayer() {
+static void initPlayer(void) {
     player = malloc(sizeof(Entity));
     memset(player, 0, sizeof(Entity));
     // player is the first actual element of the fighter linked list
@@ -177,6 +199,7 @@ static void logic(void) {
     doBullets();
     doExplosions();
     doDebris();
+    doPointsPods();
     spawnEnemies();
     clipPlayer();
 
@@ -228,7 +251,8 @@ static void doPlayer(void) {
             player->dx = PLAYER_SPEED;
         }
 
-        if (app.keyboard[SDL_SCANCODE_LCTRL] && player->reload == 0) {
+        if (app.keyboard[SDL_SCANCODE_LCTRL] && player->reload <= 0) {
+            playSound(SND_PLAYER_FIRE, CH_PLAYER);
             fireBullet();
         }
         if (app.keyboard[SDL_SCANCODE_ESCAPE]) {
@@ -264,6 +288,7 @@ static void doEnemies(void) {
     for (e = stage.fighterHead.next; e != NULL; e = e->next) {
         if (e != player && player != NULL && --e->reload <= 0) {
             fireAlienBullet(e);
+            playSound(SND_ALIEN_FIRE, CH_ALIEN_FIRE);
         }
     }
 }
@@ -307,7 +332,7 @@ static void doFighters(void) {
             e->health = 0;
         }
 
-        if (e->health == 0) {
+        if (e->health <= 0) {
             if (e == player) {
                 player = NULL;
             }
@@ -353,10 +378,33 @@ static int bulletHitFighter(Entity *b) {
             e->health -= 1;
             addExplosions(e->x, e->y, 32);
             addDebris(e);
+
+            if (e->health <= 0) {
+                if (e == player) {
+                    playSound(SND_PLAYER_DIE, CH_PLAYER);
+                } else {
+                    addPointsPod(e->x + e->w / 2, e->y + e->h / 2);
+                    playSound(SND_ALIEN_DIE, CH_ANY);
+                    stage.score++;
+                    highscore = MAX(stage.score, highscore);
+                }
+            }
             return 1;
         }
     }
     return 0;
+}
+
+static void doPointsPods(void) {
+    Entity *e, *prev;
+    prev = &stage.pointsHead;
+
+    // TODO: finish
+
+}
+
+static void addPointsPod(int x, int y) {
+    // TODO:
 }
 
 static void spawnEnemies(void) {
@@ -528,6 +576,7 @@ static void draw(void) {
     drawDebris();
     drawExplosions();
     drawBullets();
+    drawHud();
 }
 
 static void drawFighters(void) {
@@ -593,4 +642,14 @@ static void drawExplosions(void) {
     }
     // reset BLENDMODE
     SDL_SetRenderDrawBlendMode(app.renderer, SDL_BLENDMODE_NONE);
+}
+
+static void drawHud(void) {
+    drawText(10, 10, 255, 255, 255, "SCORE: %03d", stage.score);
+
+    if (stage.score > 0 && stage.score == highscore) {
+        drawText(960, 10, 0, 255, 0, "HIGH SCORE: %03d", highscore);
+    } else {
+        drawText(960, 10, 255, 255, 255, "HIGH SCORE: %03d", highscore);
+    }
 }
