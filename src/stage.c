@@ -109,7 +109,15 @@ void initStage(void) {
 }
 
 /*
- * Used to reset a game stage. Removes enemies, bullets, explosions, etc. and initialize background and player.
+ * Used to reset a game stage.
+ * Iterates over various linked lists to remove:
+ * - fighters,
+ * - bullets,
+ * - explosions,
+ * - debris,
+ * - points.
+ *
+ * Also initialize background and player. And reset a score.
  */
 static void resetStage(void) {
     Entity *e;
@@ -321,11 +329,16 @@ static void fireAlienBullet(Entity *e) {
 }
 
 static void doFighters(void) {
+    /*
+     * *e currently processed Entity
+     * *prev previously Entity. Necessary for further remove of e
+     */
     Entity *e, *prev;
 
     prev = &stage.fighterHead;
 
     for (e = stage.fighterHead.next; e != NULL; e = e->next) {
+        // updating positions
         e->x += e->dx;
         e->y += e->dy;
 
@@ -338,14 +351,17 @@ static void doFighters(void) {
             if (e == player) {
                 player = NULL;
             }
-
+            // if e is the last element of linked list, then
+            // point the end of the linked list to previous element
             if (e == stage.fighterTail) {
                 stage.fighterTail = prev;
             }
+            // omitting e, so it could be safely removed
             prev->next = e->next;
             free(e);
             e = prev;
         }
+        // sets prev for next iteration
         prev = e;
     }
 }
