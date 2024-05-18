@@ -1,26 +1,27 @@
 /*
  * Handles input, such as reading the keyboard.
  */
-
+#include "Input.h"
+#include "App.h"
 #include "common.h"
-
-#include "input.h"
 
 extern App app;
 
-static void doKeyUp(SDL_KeyboardEvent *event) {
-    if (event->repeat == 0 && event->keysym.scancode < MAX_KEYBOARD_KEYS) {
-        app.keyboard[event->keysym.scancode] = 0;
-    }
-}
+InputHandler::InputHandler() {}
 
-static void doKeyDown(SDL_KeyboardEvent *event) {
+void InputHandler::doKeyDown(SDL_KeyboardEvent *event) {
     if (event->repeat == 0 && event->keysym.scancode < MAX_KEYBOARD_KEYS) {
         app.keyboard[event->keysym.scancode] = 1;
     }
 }
 
-void doInput(void) {
+void InputHandler::doKeyUp(SDL_KeyboardEvent *event) {
+    if (event->repeat == 0 && event->keysym.scancode < MAX_KEYBOARD_KEYS) {
+        app.keyboard[event->keysym.scancode] = 0;
+    }
+}
+
+void InputHandler::doInput() {
     SDL_Event event;
 
     while (SDL_PollEvent(&event)) {

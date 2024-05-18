@@ -1,11 +1,15 @@
 /*
  * Common headers
  */
-#include "ctype.h"
+#ifndef COMMON_H
+#define COMMON_H
+
+#include <cctype>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <SDL2/SDL.h>
 #include "defs.h"
-#include "math.h"
-#include "SDL2/SDL.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
-#include "structs.h"
+
+#endif // COMMON_H

@@ -1,6 +1,9 @@
 /*
  * Definitions
  */
+#ifndef DEFS_H
+#define DEFS_H
+
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 #define MAX(a, b) (((a) < (b)) ? (b) : (a))
 #define SCREEN_WIDTH  1280
@@ -38,3 +41,5 @@ enum {
     SND_POINTS,
     SND_MAX
 };
+
+#endif // DEFS_H

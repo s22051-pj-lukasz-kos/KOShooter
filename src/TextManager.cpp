@@ -1,15 +1,29 @@
+#include "TextManager.h"
 #include "common.h"
-#include "draw.h"
-#include "text.h"
+#include "Draw.h"
+#include <cstdarg>
+#include <cstdio>
+#include <cstring>
+#include "App.h"
 
 #define GLYPH_HEIGHT 28
 #define GLYPH_WIDTH  18
 
-static SDL_Texture *fontTexture;
-static char drawTextBuffer[MAX_LINE_LENGTH];
+extern App app;
 
-void initFonts(void) {
-    fontTexture = loadTexture("gfx/font.png");
+TextManager::TextManager() : fontTexture(nullptr), drawTextBuffer{} {}
+
+TextManager::~TextManager() {
+    if (fontTexture) {
+        SDL_DestroyTexture(fontTexture);
+    }
+}
+
+void TextManager::initFonts() {
+    fontTexture = app.getRendererObj()->loadTexture("gfx/font.png");
+    if (!fontTexture) {
+        SDL_Log("Failed to load font texture: %s", SDL_GetError());
+    }
 }
 
 /*
@@ -20,14 +34,14 @@ void initFonts(void) {
  * @param b Blue part of RGB color
  * @param format The text to render
  */
-void drawText(int x, int y, int r, int g, int b, char *format, ...) {
-    int i, len, c;
+void TextManager::drawText(int x, int y, int r, int g, int b, const char *format, ...) {
+    int len, c;
     SDL_Rect rect;
     // variable list of arguments
     va_list args;
 
     // clearing text
-    memset(&drawTextBuffer, '\0', sizeof(drawTextBuffer));
+    std::memset(&drawTextBuffer, '\0', sizeof(drawTextBuffer));
 
     // init va_list with the last fixed argument format
     va_start(args, format);
@@ -37,7 +51,7 @@ void drawText(int x, int y, int r, int g, int b, char *format, ...) {
     va_end(args);
 
     // length of formatted text
-    len = strlen(drawTextBuffer);
+    len = std::strlen(drawTextBuffer);
 
     rect.w = GLYPH_WIDTH;
     rect.h = GLYPH_HEIGHT;
@@ -46,12 +60,12 @@ void drawText(int x, int y, int r, int g, int b, char *format, ...) {
     // set font color
     SDL_SetTextureColorMod(fontTexture, r, g, b);
 
-    for (i = 0; i < len; i++) {
+    for (int i = 0; i < len; i++) {
         c = drawTextBuffer[i];
 
         if (c >= ' ' && c <= 'Z') {
             rect.x = (c - ' ') * GLYPH_WIDTH;
-            blitRect(fontTexture, &rect, x, y);
+            app.getRendererObj()->blitRect(fontTexture, &rect, x, y);
             // adjustments, so fonts won't stack on top of each other
             x += GLYPH_WIDTH;
         }
